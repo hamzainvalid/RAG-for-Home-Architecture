@@ -11,3 +11,4 @@ pypdf
 qdrant-client
 langchain-qdrant
 langchain-text-splitters
+langchain-huggingface
