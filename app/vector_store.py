@@ -33,7 +33,7 @@ QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
 
 COLLECTION_NAME = "architecture_ai"
 
-DOCUMENTS_PATH = "../documents"
+DOCUMENTS_PATH = "./documents"
 
 
 # =========================================================
