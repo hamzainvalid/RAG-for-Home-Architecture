@@ -1,6 +1,16 @@
 import json
-    embedding_function=get_embedding_model()
+
+from langchain_openai import ChatOpenAI
+from langchain.prompts import ChatPromptTemplate
+
+from config import (
+    OPENAI_API_KEY,
+    MODEL_NAME
 )
+
+from prompts import SYSTEM_PROMPT
+
+from qdrant_store import vector_store
 
 
 llm = ChatOpenAI(
@@ -11,49 +21,94 @@ llm = ChatOpenAI(
 
 
 def build_query(scene_data):
-    issues = ", ".join(scene_data.get("issues", []))
-    action = scene_data["user_action"]["action"]
 
-    object_types = [obj["type"] for obj in scene_data["objects"]]
+    issues = ", ".join(
+        scene_data.get("issues", [])
+    )
+
+    scores = scene_data.get("scores", {})
+
+    object_types = [
+        obj["type"]
+        for obj in scene_data["objects"]
+    ]
+
+    room_types = [
+        room["room_type"]
+        for room in scene_data["rooms"]
+    ]
 
     return f"""
-    User action: {action}
-    Issues: {issues}
-    Objects: {object_types}
+    User Action:
+    {scene_data['user_action']['action']}
+
+    Target:
+    {scene_data['user_action']['target_id']}
+
+    Issues:
+    {issues}
+
+    Scores:
+    {json.dumps(scores)}
+
+    Room Types:
+    {room_types}
+
+    Object Types:
+    {object_types}
     """
 
 
 async def analyze_scene(scene_data):
+
     query = build_query(scene_data)
 
-    docs = vector_store.similarity_search(query, k=5)
+    docs = vector_store.similarity_search(
+        query=query,
+        k=5
+    )
 
-    rag_context = "\n\n".join([doc.page_content for doc in docs])
+    rag_context = "\n\n".join([
+        doc.page_content
+        for doc in docs
+    ])
 
     prompt = ChatPromptTemplate.from_messages([
-        ("system", SYSTEM_PROMPT),
+        (
+            "system",
+            SYSTEM_PROMPT
+        ),
         (
             "human",
             f"""
-            RAG Context:
+            Retrieved Context:
             {rag_context}
 
-            Scene Data:
+            Scene Metadata:
             {json.dumps(scene_data, indent=2)}
 
-            Return JSON in this format:
+            Return JSON ONLY.
+
+            Required format:
+
             {{
-                "suggestions": [
-                    {{
-                        "target_id": "",
-                        "action": "",
-                        "direction": "",
-                        "distance": 0,
-                        "reason": ""
-                    }}
-                ],
-                "warnings": [],
-                "scores": {{}}
+              "suggestions": [
+                {{
+                  "target_id": "",
+                  "action": "",
+                  "direction": "",
+                  "distance": 0,
+                  "reason": ""
+                }}
+              ],
+
+              "warnings": [],
+
+              "scores": {{
+                "spacing": 0,
+                "walkability": 0,
+                "style_consistency": 0
+              }}
             }}
             """
         )
