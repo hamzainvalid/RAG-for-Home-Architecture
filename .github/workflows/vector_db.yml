@@ -1,0 +1,28 @@
+on:
+  push:
+    branches:
+      - main
+
+
+env:
+  AMH_EL_TTS_API: ${{ secrets.AMH_EL_TTS_API }}
+  QDRANT_API_KEY: ${{ secrets.QDRANT_API_KEY }}
+  QDRANT_URL: ${{ secrets.QDRANT_URL }}
+
+jobs:
+  run-vector-db:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run script vdb
+        run: python app/vector_store.py
+
