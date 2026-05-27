@@ -1,5 +1,23 @@
+from typing import Optional, List, Dict
+
 from pydantic import BaseModel
 
+class Vector3(BaseModel):
+    x: float
+    y: float
+    z: float
+
+
+class Dimensions(BaseModel):
+    width: float
+    height: float
+    depth: float
+
+class Clearance(BaseModel):
+    front: float
+    back: float
+    left: float
+    right: float
 
 class Relationships(BaseModel):
     attached_to: Optional[str] = None

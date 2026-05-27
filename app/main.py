@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from models import SceneRequest
+from .models import SceneRequest
 
-from rag_service import analyze_scene
+from .rag_service import analyze_scene
 
 
 app = FastAPI()

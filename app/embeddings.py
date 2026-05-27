@@ -1,6 +1,8 @@
-from langchain_openai import OpenAIEmbeddings
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from .config import EMBEDDING_MODEL
+
 
 def get_embedding_model():
-    return OpenAIEmbeddings(
-        model="text-embedding-3-small"
+    return HuggingFaceEmbeddings(
+        model_name=EMBEDDING_MODEL
     )

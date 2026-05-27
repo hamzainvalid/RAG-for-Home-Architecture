@@ -4,14 +4,14 @@ from langchain_openai import ChatOpenAI
 # from langchain.prompts import ChatPromptTemplate
 from langchain_core.prompts import ChatPromptTemplate
 
-from config import (
+from .config import (
     OPENAI_API_KEY,
     MODEL_NAME
 )
 
-from prompts import SYSTEM_PROMPT
+from .prompts import SYSTEM_PROMPT
 
-from qdrant_store import vector_store
+from .qdrant_store import vector_store
 
 
 llm = ChatOpenAI(
@@ -75,48 +75,42 @@ async def analyze_scene(scene_data):
     ])
 
     prompt = ChatPromptTemplate.from_messages([
-        (
-            "system",
-            SYSTEM_PROMPT
-        ),
-        (
-            "human",
-            f"""
-            Retrieved Context:
-            {rag_context}
-
-            Scene Metadata:
-            {json.dumps(scene_data, indent=2)}
-
-            Return JSON ONLY.
-
-            Required format:
-
-            {{
-              "suggestions": [
-                {{
-                  "target_id": "",
-                  "action": "",
-                  "direction": "",
-                  "distance": 0,
-                  "reason": ""
-                }}
-              ],
-
-              "warnings": [],
-
-              "scores": {{
-                "spacing": 0,
-                "walkability": 0,
-                "style_consistency": 0
-              }}
-            }}
-            """
-        )
-    ])
+    ("system", SYSTEM_PROMPT),
+    ("human", """
+        Retrieved Context:
+        {rag_context}
+        
+        Scene Metadata:
+        {scene_json}
+        
+        Return JSON ONLY.
+        
+        Required format:
+        
+        Return ONLY valid JSON with:
+        - suggestions
+        - warnings
+        - scores
+        
+        Each suggestion must contain:
+        - target_id
+        - action
+        - direction
+        - distance
+        - reason
+        
+        Each score must contain:
+        - spacing
+        - walkability
+        - style_consistency
+        """)
+])
 
     chain = prompt | llm
 
-    response = await chain.ainvoke({})
+    response = await chain.ainvoke({
+        "rag_context": rag_context,
+        "scene_json": json.dumps(scene_data, indent=2)
+    })
 
     return response.content

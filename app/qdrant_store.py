@@ -2,13 +2,13 @@ from qdrant_client import QdrantClient
 
 from langchain_qdrant import QdrantVectorStore
 
-from config import (
+from .config import (
     QDRANT_URL,
     QDRANT_API_KEY,
     COLLECTION_NAME
 )
 
-from embeddings import get_embedding_model
+from .embeddings import get_embedding_model
 
 
 client = QdrantClient(
